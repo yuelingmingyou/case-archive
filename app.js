@@ -124,7 +124,7 @@
         "</div>",
       main:
         '<div class="view-head rise">' +
-          '<div class="t">卷宗目录<small>Case Index · ' + CASES.length + ' Files</small></div>' +
+          '<div class="t">卷宗目录<small>Case Index · ' + list.length + ' / ' + CASES.length + ' Files</small></div>' +
           '<div class="search-box"><label>检索</label>' +
           '<input id="kw" type="text" placeholder="案件名 / 标签 / 关键词…" value="' + esc(keyword) + '"></div>' +
         "</div>" +
@@ -317,11 +317,29 @@
     URL.revokeObjectURL(a.href);
   }
 
-  function resetData() {
-    if (!confirm("确定要放弃本机全部修改，还原为 cases.js 中的初始数据吗？")) return;
-    localStorage.removeItem(STORE_KEY);
-    CASES = loadCases();
-    render();
+  /* 导入：接受导出的 cases.js（window.CASES_DATA = [...]）或纯 JSON 数组 */
+  function importData(file) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      var text = String(reader.result || "");
+      var data = null;
+      try { data = JSON.parse(text); } catch (e) {
+        var m = text.match(/CASES_DATA\s*=\s*(\[[\s\S]*\])\s*;?\s*$/);
+        if (m) { try { data = JSON.parse(m[1]); } catch (e2) { /* fallthrough */ } }
+      }
+      if (!Array.isArray(data) || !data.length || !data[0].id || !data[0].title) {
+        alert("导入失败：文件内容不是有效的卷宗数据。\n请使用本站导出的 cases.js，或包含案件数组的 JSON 文件。");
+        return;
+      }
+      if (!confirm("导入将覆盖当前全部卷宗数据（含本机修改），共 " + data.length + " 份卷宗。确定导入吗？")) return;
+      CASES = data;
+      persist();
+      activeCategory = "全部";
+      keyword = "";
+      location.hash = "#/";
+      render();
+    };
+    reader.readAsText(file, "utf-8");
   }
 
   window.addEventListener("hashchange", render);
@@ -329,7 +347,12 @@
   document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("btn-edit").addEventListener("click", toggleEdit);
     document.getElementById("btn-export").addEventListener("click", exportData);
-    document.getElementById("btn-reset").addEventListener("click", resetData);
+    var fileInput = document.getElementById("import-file");
+    document.getElementById("btn-import").addEventListener("click", function () { fileInput.click(); });
+    fileInput.addEventListener("change", function () {
+      if (fileInput.files && fileInput.files[0]) importData(fileInput.files[0]);
+      fileInput.value = "";
+    });
     render();
   });
 })();

@@ -134,7 +134,8 @@ a { color: inherit; }
 .view-head .t small {
   display: block; font-family: var(--mono); font-size: 11px; font-weight: 400;
   letter-spacing: .3em; color: var(--ink-faint); text-transform: uppercase;
-  margin-top: 4px;
+  margin-top: 4px; background: var(--paper); padding: 3px 8px 3px 0;
+  line-height: 1.8;
 }
 .search-box { display: flex; align-items: center; gap: 8px; }
 .search-box label { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; color: var(--ink-faint); }
@@ -402,15 +403,61 @@ a { color: inherit; }
 
 /* ---------- 响应式 ---------- */
 @media (max-width: 900px) {
+  body { overflow-x: hidden; }
   .shell { flex-direction: column; }
   .side { width: 100%; border-right: none; border-bottom: 1px solid var(--line); padding: 18px 22px; }
-  .main { padding: 24px 18px 80px; }
-  .dossier { padding: 30px 22px 50px 60px; }
-  .dossier::before { left: 12px; }
-  .dossier::after { left: 40px; }
-  .dossier-head h1 { font-size: 30px; }
-  .meta-grid { grid-template-columns: 1fr; }
-  .dossier-head .stamp { position: static; margin-top: 18px; }
+  .main { padding: 24px 16px 80px; }
   .masthead { padding: 14px 18px 12px; }
-  .masthead .brand .zh { font-size: 20px; }
+  .masthead .brand .zh { font-size: 20px; letter-spacing: .25em; }
+  .masthead .meta { font-size: 10.5px; }
+
+  /* 目录页：表格改为卡片式堆叠 */
+  .view-head { flex-direction: column; align-items: stretch; gap: 14px; }
+  .view-head .t { font-size: 24px; }
+  .search-box { width: 100%; }
+  .search-box input { flex: 1; width: auto; min-width: 0; }
+  .index-table, .index-table tbody { display: block; }
+  .index-table thead { display: none; }
+  .index-table tbody tr {
+    display: block; padding: 16px 14px; margin-bottom: 16px;
+    background: var(--paper-card); border: 1px solid var(--line);
+    box-shadow: 3px 4px 0 rgba(43,33,24,.1);
+  }
+  .index-table td { display: block; padding: 4px 0; }
+  .idx-code { font-size: 12px; }
+  .idx-title { font-size: 18px; margin-top: 2px; }
+  .idx-year, .idx-cat, .idx-status { display: inline-block; white-space: normal; }
+  .idx-year::after { content: " · "; color: var(--line); }
+  .idx-cat::after { content: " · "; color: var(--line); }
+  .index-table td:nth-child(3),
+  .index-table td:nth-child(4),
+  .index-table td:nth-child(5) { display: inline; padding: 0; }
+  .index-table td:nth-child(3)::before {
+    content: ""; display: block; margin-top: 6px;
+  }
+
+  /* 卷宗页 */
+  .dossier { padding: 26px 18px 50px 52px; }
+  .dossier::before { left: 10px; background-size: 16px 56px; width: 16px; }
+  .dossier::after { left: 36px; }
+  .dossier-head h1 { font-size: 27px; letter-spacing: .12em; }
+  .dossier-head .sub { font-size: 14px; }
+  .dossier-head .stamp { position: static; margin-top: 18px; }
+  .meta-grid { grid-template-columns: 1fr; gap: 0; }
+  .meta-row { flex-wrap: wrap; font-size: 13.5px; }
+  .meta-row .v { text-align: left; min-width: 0; overflow-wrap: anywhere; }
+  .brief { padding: 24px 18px 18px; margin: 32px 0; }
+  .brief li { font-size: 14px; }
+  .section-block > h2 { flex-wrap: wrap; gap: 6px 12px; font-size: 19px; }
+  .section-block > h2 .en { margin-left: 0; width: 100%; }
+  .sub-section p, .section-block > p { font-size: 14.5px; text-align: left; }
+  .people-table td { display: block; padding: 6px 4px; }
+  .people-table td:first-child { width: auto; padding-bottom: 0; }
+  .people-table td:last-child { padding-top: 0; padding-bottom: 12px; }
+  .quote-slip { padding: 16px 16px; }
+  .quote-slip .q { font-size: 15px; }
+  .tl-text { font-size: 13.5px; }
+  .toolbar { right: 12px; bottom: 12px; }
+  .tool-btn { font-size: 11px; padding: 8px 12px; }
+  .colophon { flex-direction: column; gap: 4px; }
 }
