@@ -189,6 +189,7 @@
     var main =
       '<div class="edit-banner">编辑模式已开启 —— 点击虚线框内文字即可修改，改动自动保存在本机浏览器</div>' +
       '<a class="back-link" href="#/">← 返回卷宗目录</a>' +
+      '<a class="back-link" style="margin-left:20px" href="#/edit/' + encodeURIComponent(c.id) + '">✎ 表单编辑此卷宗</a>' +
       '<div class="dossier rise">' +
         '<div class="dossier-head">' +
           '<div class="code-line"><span>File No. ' + esc(c.code) + '</span><span>' + esc(c.era) + "</span></div>" +
@@ -242,12 +243,183 @@
       "</div>";
   }
 
+  /* ---------- 新建 / 表单编辑 ---------- */
+  function blankCase() {
+    return {
+      id: "", code: "", title: "", subtitle: "", year: "", era: "", location: "",
+      category: "未分类", tags: [], status: "整理中", source: "", summary: "",
+      points: [], people: [], timeline: [], sections: [], quotes: [], related: []
+    };
+  }
+
+  function splitLines(text) {
+    return String(text || "").split("\n")
+      .map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+  function splitPipe(line) {
+    return line.split(/[|｜]/).map(function (s) { return s.trim(); });
+  }
+  function joinLines(arr) { return (arr || []).join("\n"); }
+
+  function parseSections(text) {
+    var out = [], cur = null;
+    String(text || "").split("\n").forEach(function (line) {
+      var t = line.trim();
+      if (!t) return;
+      if (t.charAt(0) === "#") {
+        cur = { title: t.replace(/^#+\s*/, ""), paras: [] };
+        out.push(cur);
+      } else if (cur) {
+        cur.paras.push(t);
+      } else {
+        cur = { title: "正文", paras: [t] };
+        out.push(cur);
+      }
+    });
+    return out;
+  }
+
+  function field(id, label, value, hint, textarea, rows) {
+    var input = textarea
+      ? '<textarea id="' + id + '" rows="' + (rows || 4) + '">' + esc(value) + "</textarea>"
+      : '<input id="' + id + '" type="text" value="' + esc(value) + '">';
+    return '<div class="f-field"><label for="' + id + '">' + label + "</label>" + input +
+      (hint ? '<div class="hint">' + hint + "</div>" : "") + "</div>";
+  }
+
+  function renderForm(main, c, isNew) {
+    var peopleText = (c.people || []).map(function (p) { return p.name + " ｜ " + p.role; }).join("\n");
+    var tlText = (c.timeline || []).map(function (t) { return t.date + " ｜ " + t.title + " ｜ " + t.text; }).join("\n");
+    var secText = (c.sections || []).map(function (s) {
+      return "# " + s.title + "\n" + (s.paras || []).join("\n");
+    }).join("\n\n");
+    var quoteText = (c.quotes || []).map(function (q) { return q.text + " ｜ " + q.from; }).join("\n");
+
+    main.innerHTML =
+      '<a class="back-link" href="' + (isNew ? "#/" : "#/case/" + encodeURIComponent(c.id)) + '">← 放弃并返回</a>' +
+      '<div class="dossier rise">' +
+        '<div class="dossier-head">' +
+          '<div class="code-line"><span>' + (isNew ? "New File" : "Edit File · " + esc(c.code)) + '</span><span>表单录入</span></div>' +
+          "<h1>" + (isNew ? "新建卷宗" : "编辑卷宗") + "</h1>" +
+          '<div class="sub">带「｜」的是分隔符；列表类内容每行一条，保存后立即生效</div>' +
+        "</div>" +
+
+        '<div class="two-col">' +
+          field("f-code", "档案编号 / File No.", c.code, "如 A-002，留空则自动生成") +
+          field("f-status", "档案状态 / Status", c.status, "如 已归档 / 整理中，会显示为右上角印章") +
+          field("f-year", "年代 / Period", c.year, "如 1948—1949") +
+          field("f-category", "案件分类 / Category", c.category, "目录页按此自动分组筛选，写新名字即新增分类") +
+          field("f-era", "时代背景 / Era", c.era, "") +
+          field("f-location", "案发地点 / Location", c.location, "") +
+          field("f-tags", "标签 / Tags", (c.tags || []).join("，"), "用逗号或顿号分隔") +
+          field("f-source", "资料来源 / Source", c.source, "") +
+        "</div>" +
+
+        field("f-title", "案件名称 / Title *", c.title, "") +
+        field("f-subtitle", "副标题 / Subtitle", c.subtitle, "") +
+        field("f-summary", "案由摘要 / Summary", c.summary, "一句话概括，显示在目录页", true, 2) +
+        field("f-points", "阅卷速览 / Key Points", joinLines(c.points), "每行一条要点", true, 6) +
+        field("f-people", "涉案人物 / Persons", peopleText, "每行：姓名 ｜ 介绍", true, 5) +
+        field("f-timeline", "案件时间线 / Chronology", tlText, "每行：日期 ｜ 标题 ｜ 内容", true, 8) +
+        field("f-sections", "案件详述 / Full Record", secText, "以「# 章节标题」另起一节；其余每行一个段落", true, 12) +
+        field("f-quotes", "证物摘录 / Exhibits", quoteText, "每行：引文 ｜ 出处", true, 5) +
+        field("f-related", "延伸关联 / Cross Ref.", joinLines(c.related), "每行一条", true, 4) +
+
+        '<div class="btn-row">' +
+          '<button class="tool-btn" id="btn-save">保存卷宗</button>' +
+          '<button class="tool-btn ghost" id="btn-cancel">取消</button>' +
+          (isNew ? "" : '<button class="tool-btn danger" id="btn-delete">删除此卷宗</button>') +
+        "</div>" +
+        '<div class="local-note">保存后存于本机浏览器；要同步到 GitHub 请再点右下角「导出 cases.js」并提交仓库。</div>' +
+      "</div>";
+
+    document.getElementById("btn-save").addEventListener("click", function () {
+      var data = collectForm(isNew, c.id);
+      if (!data) return;
+      if (isNew) {
+        CASES.push(data);
+      } else {
+        var idx = CASES.findIndex(function (x) { return x.id === c.id; });
+        if (idx !== -1) CASES[idx] = data;
+      }
+      persist();
+      activeCategory = "全部";
+      keyword = "";
+      location.hash = "#/case/" + encodeURIComponent(data.id);
+    });
+    document.getElementById("btn-cancel").addEventListener("click", function () {
+      location.hash = isNew ? "#/" : "#/case/" + encodeURIComponent(c.id);
+    });
+    var delBtn = document.getElementById("btn-delete");
+    if (delBtn) {
+      delBtn.addEventListener("click", function () {
+        if (!confirm("确定删除卷宗「" + c.title + "」吗？此操作在本机立即生效。")) return;
+        CASES = CASES.filter(function (x) { return x.id !== c.id; });
+        persist();
+        location.hash = "#/";
+      });
+    }
+  }
+
+  function collectForm(isNew, origId) {
+    function val(id) { return document.getElementById(id).value.trim(); }
+    var title = val("f-title");
+    if (!title) { alert("请至少填写「案件名称」。"); return null; }
+    return {
+      id: isNew ? ("case-" + Date.now().toString(36)) : origId,
+      code: val("f-code") || ("A-" + String(CASES.length + 1).padStart(3, "0")),
+      title: title,
+      subtitle: val("f-subtitle"),
+      year: val("f-year"),
+      era: val("f-era"),
+      location: val("f-location"),
+      category: val("f-category") || "未分类",
+      tags: val("f-tags").split(/[,，、;；]/).map(function (s) { return s.trim(); }).filter(Boolean),
+      status: val("f-status") || "整理中",
+      source: val("f-source"),
+      summary: val("f-summary"),
+      points: splitLines(val("f-points")),
+      people: splitLines(val("f-people")).map(function (l) {
+        var p = splitPipe(l); return { name: p[0] || "", role: p.slice(1).join("｜") };
+      }),
+      timeline: splitLines(val("f-timeline")).map(function (l) {
+        var p = splitPipe(l); return { date: p[0] || "", title: p[1] || "", text: p.slice(2).join("｜") };
+      }),
+      sections: parseSections(val("f-sections")),
+      quotes: splitLines(val("f-quotes")).map(function (l) {
+        var p = splitPipe(l); return { text: p[0] || "", from: p.slice(1).join("｜") };
+      }),
+      related: splitLines(val("f-related"))
+    };
+  }
+
   /* ---------- 渲染 ---------- */
   function render() {
     var hash = location.hash || "#/";
     var m = hash.match(/^#\/case\/(.+)$/);
     var side = document.getElementById("side");
     var main = document.getElementById("main");
+
+    /* 新建卷宗 */
+    if (hash === "#/new") {
+      side.innerHTML = indexSideOnly();
+      renderForm(main, blankCase(), true);
+      window.scrollTo(0, 0);
+      bindSide();
+      return;
+    }
+    /* 表单编辑已有卷宗 */
+    var me = hash.match(/^#\/edit\/(.+)$/);
+    if (me) {
+      var ec = CASES.find(function (x) { return x.id === decodeURIComponent(me[1]); });
+      if (ec) {
+        side.innerHTML = indexSideOnly();
+        renderForm(main, ec, false);
+        window.scrollTo(0, 0);
+        bindSide();
+        return;
+      }
+    }
 
     if (m) {
       var c = CASES.find(function (x) { return x.id === decodeURIComponent(m[1]); });
@@ -345,6 +517,7 @@
   window.addEventListener("hashchange", render);
 
   document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("btn-new").addEventListener("click", function () { location.hash = "#/new"; });
     document.getElementById("btn-edit").addEventListener("click", toggleEdit);
     document.getElementById("btn-export").addEventListener("click", exportData);
     var fileInput = document.getElementById("import-file");

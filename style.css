@@ -386,6 +386,32 @@ a { color: inherit; }
   color: var(--olive); margin-top: 14px; line-height: 1.8;
 }
 
+/* ---------- 表单（新建 / 编辑卷宗） ---------- */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
+.f-field { margin: 18px 0 4px; }
+.f-field label {
+  display: block; font-family: var(--mono); font-size: 11px;
+  letter-spacing: .22em; color: var(--ink-faint); text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.f-field input, .f-field textarea {
+  width: 100%; font-family: var(--serif); font-size: 15px; color: var(--ink);
+  background: var(--paper); border: 1px solid var(--line);
+  border-bottom: 2px solid var(--ink);
+  padding: 9px 12px; outline: none; line-height: 1.8;
+  resize: vertical;
+}
+.f-field input:focus, .f-field textarea:focus {
+  border-color: var(--cinnabar); border-bottom-color: var(--cinnabar);
+}
+.f-field .hint {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+  color: var(--ink-faint); margin-top: 5px;
+}
+.btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 34px; }
+.tool-btn.danger { background: var(--paper-card); color: var(--cinnabar); border: 1px solid var(--cinnabar); }
+.tool-btn.danger:hover { background: var(--cinnabar); color: var(--paper-card); }
+
 /* ---------- 入场动效 ---------- */
 @keyframes rise-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 .rise { animation: rise-in .7s cubic-bezier(.22,.8,.36,1) both; }
@@ -459,5 +485,6 @@ a { color: inherit; }
   .tl-text { font-size: 13.5px; }
   .toolbar { right: 12px; bottom: 12px; }
   .tool-btn { font-size: 11px; padding: 8px 12px; }
+  .two-col { grid-template-columns: 1fr; gap: 0; }
   .colophon { flex-direction: column; gap: 4px; }
 }
