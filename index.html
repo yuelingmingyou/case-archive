@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>案件档案馆 · Case Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="brand">
+    <span class="zh">案件档案馆</span>
+    <span class="en">Case Archive · Reading Room</span>
+  </div>
+  <div class="meta">私人卷宗 · 非官方整理 · 仅供回忆查阅</div>
+</header>
+
+<div class="shell">
+  <aside class="side" id="side"></aside>
+  <main class="main" id="main"></main>
+</div>
+
+<div class="toolbar">
+  <button class="tool-btn" id="btn-edit">编辑模式</button>
+  <button class="tool-btn ghost" id="btn-export">导出 cases.js</button>
+  <button class="tool-btn ghost" id="btn-reset">还原初始数据</button>
+</div>
+
+<script src="cases.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
